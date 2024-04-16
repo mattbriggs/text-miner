@@ -1,6 +1,6 @@
 # Text Miner
 
-Text Miner is a Python application designed to process a text corpus stored in a SQLite database. The application extracts data from a database that contains corpus, generates summaries, and identifies the top fifty terms within the documents. Developed by Matt Briggs, this tool is useful for quick content analysis and data extraction from large text collections.
+Text Miner is a Python application designed to process a text corpus stored in a SQLite database. The application extracts data from a database that contains corpus, generates summaries, and identifies the top fifty terms within the documents. The tool can be used for quick content analysis and data extraction from large text collections.
 
 ## Version
 0.0.1 | Matt Briggs
