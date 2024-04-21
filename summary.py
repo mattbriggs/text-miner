@@ -78,8 +78,8 @@ def summarize_text(text):
     
     # Extract the top 7 sentences as the summary
     summary_sentences = heapq.nlargest(7, sentence_scores, key=sentence_scores.get)
-    summary = ' '.join(summary_sentences)
-
+    summary = ' '.join(summary_sentences).replace("\n", " ").replace("#", "").replace("|", "")
+    
     return summary
 
 def main():

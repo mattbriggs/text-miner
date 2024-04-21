@@ -1,15 +1,20 @@
--- Create the documents table with doc_id and doc_path
-CREATE TABLE IF NOT EXISTS documents (
+CREATE TABLE documents (
     doc_id TEXT PRIMARY KEY,
     doc_path TEXT,
     summary TEXT,
+    ext TEXT,
     doc_length INTEGER
 );
 
--- Create the terms table with doc_id and term
--- This table has a foreign key reference to the documents table
-CREATE TABLE IF NOT EXISTS terms (
+CREATE TABLE raw_terms (
     doc_id TEXT,
     term TEXT,
+    count INTEGER,
     FOREIGN KEY (doc_id) REFERENCES documents (doc_id)
+);
+
+CREATE TABLE terms (
+    term TEXT PRIMARY KEY,
+    term_definition TEXT,
+    total_count INTEGER
 );
