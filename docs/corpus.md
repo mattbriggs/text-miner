@@ -6,51 +6,83 @@ The following entity-relationship diagram illustrates the tables and their relat
 
 ## Corpus model
 
+Here's the ERD (Entity Relationship Diagram) for your database, expressed using mermaid.js syntax:
+
 ```mermaid
 erDiagram
+    CORPUS ||--o{ DOCUMENT : "contains"
     CORPUS {
-        string corpus_id PK "PRIMARY KEY"
+        string corpus_id PK
         string corpus_name
-        integer no_words
-        integer doc_count
+        int no_words
+        int doc_count
     }
+
+    DOCUMENT ||--o{ LINES : "has"
+    DOCUMENT ||--|| BODY : "has"
+    DOCUMENT ||--|| METADATA : "has"
     DOCUMENT {
-        string doc_id PK "PRIMARY KEY"
-        string corpus_id FK "FOREIGN KEY"
+        string doc_id PK
+        string corpus_id FK
         string doc_path
         string doc_ext
         text doc_raw
-        integer doc_length
+        int doc_length
     }
+
+    LINES {
+        string doc_id FK
+        int line_no
+        text line_text
+        float possent
+        float nuesent
+        float negsent
+        float compsent
+        string PRIMARY_KEY "doc_id, line_no"
+    }
+
     BODY {
-        string doc_id PK "PRIMARY KEY"
+        string doc_id PK
         text body_text
     }
+
     METADATA {
-        string doc_id PK "PRIMARY KEY"
+        string doc_id PK
         text metadata_raw
         string title
-        string meta_description
+        text meta_description
         string author
         string ms_author
         string ms_service
         string ms_topic
         string ms_date
     }
-    
-    CORPUS ||--o{ DOCUMENT : contains
-    DOCUMENT ||--|| BODY : has
-    DOCUMENT ||--|| METADATA : has
 ```
 
-## Corpus SQL
+### Explanation of the ERD
 
-- **Entities** are represented as blocks (`CORPUS`, `DOCUMENT`, `BODY`, `METADATA`), with each entity listing its fields. Each field's type is indicated (e.g., `string`, `text`, `integer`).
-- **Primary Keys** (PK) and **Foreign Keys** (FK) are annotated next to the respective fields.
-- The relationships are denoted with lines and symbols where:
-  - `||` indicates a one (1) and `{` indicates many (M), reflecting the cardinality of the relationship.
-  - `||--o{`: One to many relationship (e.g., one corpus can contain many documents).
-  - `||--||`: One to one relationship (e.g., one document has one body and one metadata set).
+1. **Corpus Table**:
+   - Each `corpus` entry can have multiple `documents`, representing a collection of documents.
+   - The table `corpus` has attributes like the name of the corpus, number of words, and document count.
+
+2. **Document Table**:
+   - Each `document` is linked to one `corpus` through the `corpus_id`.
+   - A `document` can have multiple `lines` and exactly one `body` and one `metadata` entry.
+   - This table includes details such as document path, extension, raw content, and length.
+
+3. **Lines Table**:
+   - The `lines` table stores each line of a document as a separate record with sentiment scores.
+   - It has a composite primary key consisting of `doc_id` and `line_no`, ensuring each line in a document is uniquely identified.
+
+4. **Body Table**:
+   - The `body` table contains the main text of a document.
+   - It is directly linked to the `document` table and identified by the `doc_id`.
+
+5. **Metadata Table**:
+   - This table contains metadata about a document such as the raw metadata, title, description, and author information.
+   - Similar to the `body` table, each `metadata` entry is uniquely identified by `doc_id`.
+
+This ERD showcases the relationships and key attributes of your database, essential for understanding how data is interconnected within your schema.
 
 ## Related content
 

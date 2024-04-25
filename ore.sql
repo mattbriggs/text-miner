@@ -18,3 +18,18 @@ CREATE TABLE terms (
     term_definition TEXT,
     total_count INTEGER
 );
+
+CREATE TABLE kwic (
+    term TEXT,
+    doc_id TEXT,
+    position INTEGER,
+    context line,
+    
+    FOREIGN KEY (term) REFERENCES terms (term),
+    FOREIGN KEY (doc_id) REFERENCES documents (doc_id)
+);
+)
+
+CREATE VIEW unique_terms (
+    Select Distinct term from raw_terms order by term;
+);
