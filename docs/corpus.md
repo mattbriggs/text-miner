@@ -6,7 +6,7 @@ The following entity-relationship diagram illustrates the tables and their relat
 
 ## Corpus model
 
-Here's the ERD (Entity Relationship Diagram) for your database, expressed using mermaid.js syntax:
+The following ERD (Entity Relationship Diagram) shows the structure of the database:
 
 ```mermaid
 erDiagram
@@ -73,6 +73,11 @@ erDiagram
 3. **Lines Table**:
    - The `lines` table stores each line of a document as a separate record with sentiment scores.
    - It has a composite primary key consisting of `doc_id` and `line_no`, ensuring each line in a document is uniquely identified.
+   - Each line has sentiment anlaysis 0-1 for:
+      - Positive sentiment (possent)
+      - Neutral sentiment (nuesent)
+      - Negative sentiment (negsent)
+      - Composite sentiment (compsent)
 
 4. **Body Table**:
    - The `body` table contains the main text of a document.
