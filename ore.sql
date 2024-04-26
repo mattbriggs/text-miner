@@ -23,7 +23,7 @@ CREATE TABLE kwic (
     term TEXT,
     doc_id TEXT,
     line_no INTEGER,
-    context line,
+    context TEXT,
     possent REAL,
     nuesent REAL,
     negsent REAL,
@@ -32,6 +32,5 @@ CREATE TABLE kwic (
     FOREIGN KEY (doc_id) REFERENCES documents (doc_id)
 );
 
-CREATE VIEW unique_terms (
-    Select Distinct term from raw_terms order by term;
-);
+CREATE VIEW unique_terms AS -- Changed to 'AS' for creating view
+    SELECT DISTINCT term FROM raw_terms ORDER BY term;

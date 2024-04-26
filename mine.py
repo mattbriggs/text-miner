@@ -11,34 +11,6 @@ import createdatabase as CD
 import terms as TM
 import summary as SM
 
-
-def call_sql(sql, db):
-    if not isinstance(sql, str) or not sql.strip():
-        return "Invalid SQL query: Query is empty or not a string."
-
-    try:
-        # Connect to the SQLite database
-        conn = sqlite3.connect(db)
-        cursor = conn.cursor()
-
-        # Check if the query is a SELECT statement (to decide on fetching data)
-        if sql.strip().lower().startswith('select'):
-            cursor.execute(sql)
-            data = cursor.fetchall()  # Fetch data for SELECT statements
-        else:
-            cursor.execute(sql)
-            conn.commit()  # Commit changes for INSERT, UPDATE, DELETE
-            data = "Query executed successfully."
-
-    except sqlite3.Error as e:
-        data = f"SQL Error: {e}"
-    finally:
-        cursor.close()
-        conn.close()
-
-    return data
-
-
 def main():
     '''Run the main program.'''
     with open("config.yml", 'r') as ymlfile:
@@ -50,7 +22,12 @@ def main():
     cd = CD.CorpusModel()
     cd.create(reportdb)
 
-    corpus = call_sql('SELECT * FROM document', corpusdb)
+    conn = sqlite3.connect(corpusdb)
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM document')
+    corpus = cursor.fetchall()
+    cursor.close()
+    conn.close()
 
     # corpus loop
     records = len(corpus)
@@ -64,39 +41,56 @@ def main():
         summary = SM.summarize_text(body)
         terms = TM.get_top_fifty(body, False)
 
-        squery = 'INSERT INTO documents (doc_id, doc_path, summary, ext, doc_length) VALUES (?, ?, ?, ?, ?) ', (doc_id, path, summary, ext, size)
-        data = call_sql(squery, reportdb)
-        print(data)
+        conn = sqlite3.connect(reportdb)
+        cursor = conn.cursor()
+        cursor.execute('INSERT INTO documents (doc_id, doc_path, summary, ext, doc_length) VALUES (?, ?, ?, ?, ?)', (doc_id, path, summary, ext, size))
+        conn.commit() 
+        cursor.close()
+        conn.close()
 
         # harvest all terms
         for key, value in terms.items():
-            squery = 'INSERT INTO raw_terms (doc_id, term, count) VALUES (?, ?, ?) ', (doc_id, value['Keyword'], value['Count'])
-            data = call_sql(squery, reportdb)
-            print(data)
-
-        # get all unique terms and get line occurance
-        squery = 'Select term from unique_terms'
-        terms = call_sql(squery, reportdb)
-
-        for term in terms:
-            squery = "Select * from lines Where line_text LIKE '%{}%';".format(term)
-            occurances = call_sql(squery, reportdb)
-            term_occurances = []
-            for occurance in occurances:
-                new_row = (term,) + occurance
-                term_occurances.append(new_row)
-
-        conn = sqlite3.connect(reportdb)
-        cursor = conn.cursor()
-        try:
-            cursor.executemany("INSERT INTO kwic VALUES (?, ?, ?, ?, ?, ?, ?, ?)", term_occurances)
-            conn.commit()  # Commit the changes
-            print("Content for {} inserted successfully.".format(term))
-        except sqlite3.Error as e:
-            print(f"An error occurred: {e}")
-        finally:
+            conn = sqlite3.connect(reportdb)
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO raw_terms (doc_id, term, count) VALUES (?, ?, ?)', doc_id, value['Keyword'], value['Count'])
+            conn.commit() 
             cursor.close()
             conn.close()
+
+    # get all unique terms and get line occurance
+    conn = sqlite3.connect(reportdb)
+    cursor = conn.cursor()
+    cursor.execute('Select term from unique_terms')
+    terms = cursor.fetchall()
+    cursor.close()
+    conn.close()
+
+    for term_row in terms:
+        term = term_row[0]
+        squery = "SELECT * FROM lines WHERE line_text LIKE '%{}%'".format(term)
+        conn = sqlite3.connect(reportdb)
+        cursor = conn.cursor()
+        cursor.execute(squery)
+        terms = cursor.fetchall()
+        cursor.close()
+        conn.close()
+
+    term_occurances = []
+    for occurance in occurances:
+        new_row = (term,) + occurance
+        term_occurances.append(new_row)
+
+    conn = sqlite3.connect(reportdb)
+    cursor = conn.cursor()
+    try:
+        cursor.executemany("INSERT INTO kwic VALUES (?, ?, ?, ?, ?, ?, ?, ?)", term_occurances)
+        conn.commit()  # Commit the changes
+        print("Content for {} inserted successfully.".format(term))
+    except sqlite3.Error as e:
+        print(f"An error occurred: {e}")
+    finally:
+        cursor.close()
+        conn.close()
 
         
  
