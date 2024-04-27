@@ -52,7 +52,7 @@ def main():
         for key, value in terms.items():
             conn = sqlite3.connect(reportdb)
             cursor = conn.cursor()
-            cursor.execute('INSERT INTO raw_terms (doc_id, term, count) VALUES (?, ?, ?)', doc_id, value['Keyword'], value['Count'])
+            cursor.execute('INSERT INTO raw_terms (doc_id, term, count) VALUES (?, ?, ?)', (doc_id, value['Keyword'], value['Count']))
             conn.commit() 
             cursor.close()
             conn.close()
@@ -68,31 +68,32 @@ def main():
     for term_row in terms:
         term = term_row[0]
         squery = "SELECT * FROM lines WHERE line_text LIKE '%{}%'".format(term)
+        try:
+            conn = sqlite3.connect(corpusdb)
+            cursor = conn.cursor()
+            cursor.execute(squery)
+            occurances = cursor.fetchall()
+            cursor.close()
+            conn.close()
+        except sqlite3.Error as e:
+            print(e)
+
+        term_occurances = []
+        for occurance in occurances:
+            new_row = (term,) + occurance
+            term_occurances.append(new_row)
+
         conn = sqlite3.connect(reportdb)
         cursor = conn.cursor()
-        cursor.execute(squery)
-        terms = cursor.fetchall()
-        cursor.close()
-        conn.close()
-
-    term_occurances = []
-    for occurance in occurances:
-        new_row = (term,) + occurance
-        term_occurances.append(new_row)
-
-    conn = sqlite3.connect(reportdb)
-    cursor = conn.cursor()
-    try:
-        cursor.executemany("INSERT INTO kwic VALUES (?, ?, ?, ?, ?, ?, ?, ?)", term_occurances)
-        conn.commit()  # Commit the changes
-        print("Content for {} inserted successfully.".format(term))
-    except sqlite3.Error as e:
-        print(f"An error occurred: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-
-        
+        try:
+            cursor.executemany("INSERT INTO kwic VALUES (?, ?, ?, ?, ?, ?, ?, ?)", term_occurances)
+            conn.commit()  # Commit the changes
+            print("Content for {} inserted successfully.".format(term))
+        except sqlite3.Error as e:
+            print(f"An error occurred: {e}")
+        finally:
+            cursor.close()
+            conn.close()
  
 if __name__ == "__main__":
     main()
